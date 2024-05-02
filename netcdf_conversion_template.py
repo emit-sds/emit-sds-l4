@@ -5,6 +5,7 @@ import argparse
 import numpy as np
 import os
 import datetime
+import pandas as pd
 
 
 NODATA=-9999
@@ -26,13 +27,12 @@ source regions that can be used to improve forecasts of the role of mineral dust
     nc_ds.sensor = "EMIT (Earth Surface Mineral Dust Source Investigation)"
     nc_ds.instrument = "EMIT"
     nc_ds.platform = "ISS"
-    nc_ds.Conventions = "CF-1.63"
 
     # Feel free to modify institution
     nc_ds.institution = "NASA Jet Propulsion Laboratory/California Institute of Technology"
-    nc_ds.license = "https://science.nasa.gov/earth-science/earth-science-data/data-information-policy/"
+    nc_ds.license = "Freely Distributed"
     nc_ds.naming_authority = "LPDAAC"
-    dt_now = datetime.now()
+    dt_now = datetime.utcnow()
     nc_ds.date_created = dt_now.strftime("%Y-%m-%dT%H:%M:%SZ")
     nc_ds.keywords_vocabulary = "NASA Global Change Master Directory (GCMD) Science Keywords"
     nc_ds.stdname_vocabulary = "NetCDF Climate and Forecast (CF) Metadata Convention"
@@ -40,13 +40,17 @@ source regions that can be used to improve forecasts of the role of mineral dust
     # Feel free to modify
     nc_ds.creator_name = "Jet Propulsion Laboratory/California Institute of Technology"
 
-    nc_ds.creator_url = "https://earth.jpl.nasa.gov/emit/"
+    nc_ds.creator_url = "https://www.jpl.nasa.gov/"
     nc_ds.project = "Earth Surface Mineral Dust Source Investigation"
-    nc_ds.project_url = "https://emit.jpl.nasa.gov/"
+    nc_ds.project_url = "https://emit.jpl.nasa.gov/emit"
     nc_ds.publisher_name = "NASA LPDAAC"
     nc_ds.publisher_url = "https://lpdaac.usgs.gov"
     nc_ds.publisher_email = "lpdaac@usgs.gov"
     nc_ds.identifier_product_doi_authority = "https://doi.org"
+    nc_ds.processing_level = "L4"
+    
+    nc_ds.geospatial_bounds_crs = "EPSG:4326"
+
 
     nc_ds.title = "EMIT L4 Earth System Model Products V001; "
 
@@ -97,14 +101,17 @@ def main():
     parser.add_argument('output_file', type=str)
     parser.add_argument('--dimensions', nargs=5, default=['bins','lon','lat','lev','time'])
     parser.add_argument('--use_dimensions', nargs=5, default=[1,1,1,1,1])
+    parser.add_argument('--l4_naming_file', default='data/l4_naming.csv')
     args = parser.parse_args()
+
+    l4_naming = pd.read_csv(args.l4_naming_file)
 
     source_dataset = Dataset(args.input_file, 'r')
 
 
     nc_ds = Dataset(os.path.splitext(args.output_file)[0] + '.nc', 'w', clobber=True, format='NETCDF4')
 
-    #TODO Add your sumary here:
+    #TODO Add your high level sumary information for the specific model here - we'll automatically fill in per variable later:
     #nc_ds.summary += "This model is the XXXX and works like XXXX"
 
     #nc_ds.input_description += "This is how this model went from EMIT L3 to the specified input"
@@ -118,7 +125,7 @@ def main():
             nc_ds.createDimension(out_dimension_names[n], source_dataset.dimensions[args.dimensions[n]].size)
 
     potential_name_combinations = ACCEPTED_MINERAL_NAMES.copy()
-    for varname in ACCEPTED_VARIABLES:
+    for varname in l4_naming['Long Name']:
         for mineral_name in ACCEPTED_MINERAL_NAMES:
             potential_name_combinations.append(varname + "_" + mineral_name)
 
@@ -127,6 +134,12 @@ def main():
             nc_ds.close()
             raise ValueError("Variable name not recognized as consistent with standardized names: " + varname)
         add_variable(nc_ds, varname, "f4", varname, None, source_dataset.variables[varname][:], {"dimensions": tuple(out_dimensions)})
+
+        nc_ds.title += varname
+        for _vn, vn in enumerate(l4_naming['Long Name']):
+            if vn in varname:
+                nc_ds.summary += '\n' + l4_naming['Description'][_vn]
+                break
 
     nc_ds.sync()
     nc_ds.close()
