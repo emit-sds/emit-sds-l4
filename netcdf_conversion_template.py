@@ -72,31 +72,6 @@ def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs):
     nc_ds.sync()
 
 
-def create_dataset(args, varname, l4_names, l4_naming, source_dataset):
-    nc_ds = Dataset(os.path.splitext(args.output_base)[0] + f'_{varname}.nc', 'w', clobber=True, format='NETCDF4')
-    add_main_metadata(nc_ds)
-    #TODO Add your high level sumary information for the specific model here - we'll automatically fill in per variable later:
-    #nc_ds.summary += "This model is the XXXX and works like XXXX"
-
-    #nc_ds.input_description += "This is how this model went from EMIT L3 to the specified input"
-    nc_ds.sync()
-    for _n, name in enumerate(source_dataset.variables[l4_names[0]].dimensions):
-        nc_ds.createDimension(name, source_dataset.dimensions[name].size)
-
-
-    for l4_name in l4_names:
-        add_variable(nc_ds, l4_name, "f4", l4_name, None, source_dataset.variables[l4_name][:], {"dimensions": source_dataset.variables[l4_name].dimensions})
-
-    nc_ds.title += varname
-    for _vn, vn in enumerate(l4_naming['Long Name']):
-        if vn in varname:
-            nc_ds.summary += '\n' + l4_naming['Description'][_vn]
-            break
-
-    nc_ds.sync()
-    nc_ds.close()
-
-
 
 
 ACCEPTED_MINERAL_NAMES = [
@@ -143,28 +118,57 @@ def main():
     resolved_names = []
     leftover_names = []
 
+
     #for varname in list(source_dataset.variables):
-    for _v, varname in enumerate(l4_naming['Long Name']):
+    for _v, varname in enumerate(l4_naming['Short Name']):
         
+        l4_names = []
+        l4_longnames = []
         if l4_naming['Mineral Repeat'][_v]:
-            ds_names = []
             for mineral_name in ACCEPTED_MINERAL_NAMES:
                 ds_name = varname + "_" + mineral_name
+                ds_longname = l4_naming['Long Name'][_v] + " " + mineral_name
                 if ds_name in list(source_dataset.variables):
-                    ds_names.append(ds_name)
+                    l4_names.append(ds_name)
+                    l4_longnames.append(ds_longname)
                     resolved_names.append(varname)
-            if len(ds_names) > 0:
-                create_dataset(args, varname, ds_names, l4_naming, source_dataset)
         else:
             if varname in list(source_dataset.variables):
-                create_dataset(args, varname, [varname], l4_naming, source_dataset)
+                l4_names.append(varname)
+                l4_longnames.append(l4_naming['Long Name'][_v])
                 resolved_names.append(varname)
+
+        if len(l4_names) > 0:
+            # Now make the output
+            nc_ds = Dataset(os.path.splitext(args.output_base)[0] + f'_{varname}.nc', 'w', clobber=True, format='NETCDF4')
+            add_main_metadata(nc_ds)
+            #TODO Add your high level sumary information for the specific model here - we'll automatically fill in per variable later:
+            #nc_ds.summary += "This model is the XXXX and works like XXXX"
+
+            #nc_ds.input_description += "This is how this model went from EMIT L3 to the specified input"
+            nc_ds.sync()
+            for _n, name in enumerate(source_dataset.variables[l4_names[0]].dimensions):
+                nc_ds.createDimension(name, source_dataset.dimensions[name].size)
+
+
+            for _l4, l4_name in enumerate(l4_names):
+                add_variable(nc_ds, l4_name, "f4", l4_longnames[_l4], None, source_dataset.variables[l4_name][:], {"dimensions": source_dataset.variables[l4_name].dimensions})
+
+            nc_ds.title += varname
+            for _vn, vn in enumerate(l4_naming['Long Name']):
+                if vn in varname:
+                    nc_ds.summary += '\n' + l4_naming['Description'][_vn]
+                    break
+
+            nc_ds.sync()
+            nc_ds.close()
+
 
     resolved_names = np.unique(np.array(resolved_names)).tolist()
     print(f'Succesfully Resolved: {resolved_names}')
     print(f'\n')
     print(f'Unresolved variables:')
-    for varname in l4_naming['Long Name']:
+    for varname in zip(l4_naming['Short Name'],l4_naming['Long Name']):
         if varname not in resolved_names:
             print(varname)
     
