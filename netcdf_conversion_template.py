@@ -108,6 +108,21 @@ ACCEPTED_MINERAL_NAMES = [
     'cal',
     'fel',
     'gyp',
+    'Illi',
+    'Kaol',
+    'Smec',
+    'Calc',
+    'Quar',
+    'Feld',
+    'Hema',
+    'Gyps',
+    'IlHe',
+    'KaHe',
+    'SmHe',
+    'CaHe',
+    'QuHe',
+    'FeHe',
+    'GyHe' 
 ]
 
 
