@@ -1,13 +1,13 @@
-Short Name,Long Name,Description,Dimensions,Mineral Repeat,Units,Data Type,Fill Value,No Data Value,Valid Range,Scale Factor,Size Guess (GB)
-input_min_frac,input_mineral_fraction_emitted,"Fractional emitted mineral composition, this is an input into the ESM.","bins,lon,lat","True",Unitless,32-bit floating point,-9999,N/A,N/A,N/A,0.009655952
-mod_min_soil_emis,modeled_mineral_soil_emissions,"Mineral soil emissions through time, this is an output of the ESM.","bins,lon,lat,time","True",kg m-2 s-1,32-bit floating point,-9999,N/A,N/A,N/A,0.115871429
-atm_min,atmospheric_mineral_composition,"Atmospheric mineral composition, this is an output of the ESM.","bins,lon,lat,lev,time","True",kg mineral kg-1 air,32-bit floating point,-9999,N/A,N/A,N/A,4.634857178
-dust_sw_rf_toa,dust_shortwave_radiativeforcing_topofatmosphere,Dust shortwave radiative forcing at the top of atmosphere.,"bins,lon,lat,time","False",W m-2,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
-dust_sw_rf_sfc,dust_shortwave_radiativeforcing_surface,Dust shortwave radiative forcing at the surface.,"bins,lon,lat,time","False",W m-2,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
-dust_lw_rf_toa,dust_longwave_radiativeforcing_topofatmosphere,Dust longwave radiative forcing at the top of atmosphere.,"bins,lon,lat,time","False",W m-2,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
-dust_lw_rf_sfc,dust_longwave_radiativeforcing_surface,Dust longwave radiative forcing at the surface.,"bins,lon,lat,time","False",W m-2,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
-dust_aod_vis,dust_aerosol_optical_depth_visible,"Dust aerosol optical depth, averaged across the visible wavelength range.","bins,lon,lat,time","False",Unitless,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
-dust_ssa_vis,dust_single_scattering_albedo_visible,Dust single scattering albedo averaged across the visible wavelength range.,"bins,lon,lat,time","False",Unitless,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
-wet_dep,wet_deposition,Wet dust deposition to the surface.,"lon,lat,time","True",kg m-2 s-1,32-bit floating point,-9999,N/A,N/A,N/A,0.579357147
-dry_dep,dry_deposition,Dry dust deposition to the surface.,"lon,lat,time","True",kg m-2 s-1,32-bit floating point,-9999,N/A,N/A,N/A,0.579357147
-surf_conc_v,surface_concentration_by_volume,Surface mineral concentration volume.,"lon,lat,time","True",kg m-3,32-bit floating point,-9999,N/A,N/A,N/A,0.579357147
+Short Name,Long Name,Suffix,Description,Dimensions,Mineral Repeat,Units,Data Type,Fill Value,No Data Value,Valid Range,Scale Factor,Size Guess (GB)
+input_min_frac,input_mineral_fraction_emitted,INMINFRC,"Fractional emitted mineral composition, this is an input into the ESM.","bins,lon,lat","True",Unitless,32-bit floating point,-9999,N/A,N/A,N/A,0.009655952
+mod_min_soil_emis,modeled_mineral_soil_emissions,MODMINSE,"Mineral soil emissions through time, this is an output of the ESM.","bins,lon,lat,time","True",kg m-2 s-1,32-bit floating point,-9999,N/A,N/A,N/A,0.115871429
+atm_min,atmospheric_mineral_composition,ATMMIN,"Atmospheric mineral composition, this is an output of the ESM.","bins,lon,lat,lev,time","True",kg mineral kg-1 air,32-bit floating point,-9999,N/A,N/A,N/A,4.634857178
+dust_sw_rf_toa,dust_shortwave_radiativeforcing_topofatmosphere,DSWRFTOA,Dust shortwave radiative forcing at the top of atmosphere.,"bins,lon,lat,time","False",W m-2,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
+dust_sw_rf_sfc,dust_shortwave_radiativeforcing_surface,DSWRFSFC,Dust shortwave radiative forcing at the surface.,"bins,lon,lat,time","False",W m-2,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
+dust_lw_rf_toa,dust_longwave_radiativeforcing_topofatmosphere,DLWRFTOA,Dust longwave radiative forcing at the top of atmosphere.,"bins,lon,lat,time","False",W m-2,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
+dust_lw_rf_sfc,dust_longwave_radiativeforcing_surface,DLWRFSFC,Dust longwave radiative forcing at the surface.,"bins,lon,lat,time","False",W m-2,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
+dust_aod_vis,dust_aerosol_optical_depth_visible,DAODVIS,"Dust aerosol optical depth, averaged across the visible wavelength range.","bins,lon,lat,time","False",Unitless,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
+dust_ssa_vis,dust_single_scattering_albedo_visible,DSSAVIS,Dust single scattering albedo averaged across the visible wavelength range.,"bins,lon,lat,time","False",Unitless,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
+wet_dep,wet_deposition,WETDEP,Wet dust deposition to the surface.,"lon,lat,time","True",kg m-2 s-1,32-bit floating point,-9999,N/A,N/A,N/A,0.579357147
+dry_dep,dry_deposition,DRYDEP,Dry dust deposition to the surface.,"lon,lat,time","True",kg m-2 s-1,32-bit floating point,-9999,N/A,N/A,N/A,0.579357147
+surf_conc_v,surface_concentration_by_volume,SURFCONV,Surface mineral concentration volume.,"lon,lat,time","True",kg m-3,32-bit floating point,-9999,N/A,N/A,N/A,0.579357147
