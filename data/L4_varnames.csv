@@ -8,8 +8,6 @@ dust_lw_rf_toa,dust_longwave_radiativeforcing_topofatmosphere,Dust longwave radi
 dust_lw_rf_sfc,dust_longwave_radiativeforcing_surface,Dust longwave radiative forcing at the surface.,"bins,lon,lat,time","False",W m-2,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
 dust_aod_vis,dust_aerosol_optical_depth_visible,"Dust aerosol optical depth, averaged across the visible wavelength range.","bins,lon,lat,time","False",Unitless,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
 dust_ssa_vis,dust_single_scattering_albedo_visible,Dust single scattering albedo averaged across the visible wavelength range.,"bins,lon,lat,time","False",Unitless,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
-dust_aod_550,dust_aerosol_optical_depth_550,Dust aerosol optical depth at 550 nm.,"bins,lon,lat,time","False",Unitless,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
-dust_ssa_550,dust_single_scattering_albedo_550,Dust single scattering albedo at 550 nm.,"bins,lon,lat,time","False",Unitless,32-bit floating point,-9999,N/A,N/A,N/A,0.011587143
 wet_dep,wet_deposition,Wet dust deposition to the surface.,"lon,lat,time","True",kg m-2 s-1,32-bit floating point,-9999,N/A,N/A,N/A,0.579357147
 dry_dep,dry_deposition,Dry dust deposition to the surface.,"lon,lat,time","True",kg m-2 s-1,32-bit floating point,-9999,N/A,N/A,N/A,0.579357147
 surf_conc_v,surface_concentration_by_volume,Surface mineral concentration volume.,"lon,lat,time","True",kg m-3,32-bit floating point,-9999,N/A,N/A,N/A,0.579357147
