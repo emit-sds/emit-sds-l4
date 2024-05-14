@@ -4,7 +4,7 @@ from netCDF4 import Dataset
 import argparse
 import numpy as np
 import os
-import datetime
+from datetime import datetime
 import pandas as pd
 
 
@@ -72,36 +72,52 @@ def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs):
     nc_ds.sync()
 
 
-ACCEPTED_VARIABLES = [
-    'input_mineral_fraction_emitted',
-    'modeled_mineral_soil_emissions',
-    'atmospheric_mineral_composition',
-    'dust_shortwave_radiativeforcing_topofatmosphere',
-    'dust_shortwave_radiativeforcing_surface',
-    'dust_longwave_radiativeforcing_topofatmosphere',
-    'dust_longwave_radiativeforcing_surface',
-    'dust_aerosol_optical_depth_visible',
-    'dust_single_scattering_albedo_visible',
-    'dust_aerosol_optical_depth_550',
-    'dust_single_scattering_albedo_550',
-    'wet_deposition',
-    'dry_deposition',
-    'surface_concentration_by_volume',
-]
+def create_dataset(args, varname, l4_names, l4_naming, source_dataset):
+    nc_ds = Dataset(os.path.splitext(args.output_base)[0] + f'_{varname}.nc', 'w', clobber=True, format='NETCDF4')
+    add_main_metadata(nc_ds)
+    #TODO Add your high level sumary information for the specific model here - we'll automatically fill in per variable later:
+    #nc_ds.summary += "This model is the XXXX and works like XXXX"
+
+    #nc_ds.input_description += "This is how this model went from EMIT L3 to the specified input"
+    nc_ds.sync()
+    for _n, name in enumerate(source_dataset.variables[l4_names[0]].dimensions):
+        nc_ds.createDimension(name, source_dataset.dimensions[name].size)
+
+
+    for l4_name in l4_names:
+        add_variable(nc_ds, l4_name, "f4", l4_name, None, source_dataset.variables[l4_name][:], {"dimensions": source_dataset.variables[l4_name].dimensions})
+
+    nc_ds.title += varname
+    for _vn, vn in enumerate(l4_naming['Long Name']):
+        if vn in varname:
+            nc_ds.summary += '\n' + l4_naming['Description'][_vn]
+            break
+
+    nc_ds.sync()
+    nc_ds.close()
+
+
+
 
 ACCEPTED_MINERAL_NAMES = [
-    'goethite',
-    'hematite',
+    'ill',
+    'kao',
+    'sme',
+    'feo',
+    'qua',
+    'cal',
+    'fel',
+    'gyp',
 ]
 
 
 def main():
     parser = argparse.ArgumentParser(description='netcdf conversion')
     parser.add_argument('input_file', type=str)
-    parser.add_argument('output_file', type=str)
+    parser.add_argument('output_base', type=str)
     parser.add_argument('--dimensions', nargs=5, default=['bins','lon','lat','lev','time'])
     parser.add_argument('--use_dimensions', nargs=5, default=[1,1,1,1,1])
-    parser.add_argument('--l4_naming_file', default='data/l4_naming.csv')
+    parser.add_argument('--l4_naming_file', default='data/L4_varnames.csv')
     args = parser.parse_args()
 
     l4_naming = pd.read_csv(args.l4_naming_file)
@@ -109,40 +125,36 @@ def main():
     source_dataset = Dataset(args.input_file, 'r')
 
 
-    nc_ds = Dataset(os.path.splitext(args.output_file)[0] + '.nc', 'w', clobber=True, format='NETCDF4')
+    resolved_names = []
+    leftover_names = []
 
-    #TODO Add your high level sumary information for the specific model here - we'll automatically fill in per variable later:
-    #nc_ds.summary += "This model is the XXXX and works like XXXX"
+    #for varname in list(source_dataset.variables):
+    for _v, varname in enumerate(l4_naming['Long Name']):
+        
+        if l4_naming['Mineral Repeat'][_v]:
+            ds_names = []
+            for mineral_name in ACCEPTED_MINERAL_NAMES:
+                ds_name = varname + "_" + mineral_name
+                if ds_name in list(source_dataset.variables):
+                    ds_names.append(ds_name)
+                    resolved_names.append(varname)
+            if len(ds_names) > 0:
+                create_dataset(args, varname, ds_names, l4_naming, source_dataset)
+        else:
+            if varname in list(source_dataset.variables):
+                create_dataset(args, varname, [varname], l4_naming, source_dataset)
+                resolved_names.append(varname)
 
-    #nc_ds.input_description += "This is how this model went from EMIT L3 to the specified input"
-    nc_ds.sync()
-
-    out_dimension_names = ['bins','lon','lat','lev','time']
-    out_dimensions = [out_dimension_names[n] for n in range(len(out_dimension_names)) if args.use_dimensions[n]]
-
-    for n in range(len(out_dimension_names)):
-        if args.use_dimensions[n]:
-            nc_ds.createDimension(out_dimension_names[n], source_dataset.dimensions[args.dimensions[n]].size)
-
-    potential_name_combinations = ACCEPTED_MINERAL_NAMES.copy()
+    resolved_names = np.unique(np.array(resolved_names)).tolist()
+    print(f'Succesfully Resolved: {resolved_names}')
+    print(f'\n')
+    print(f'Unresolved variables:')
     for varname in l4_naming['Long Name']:
-        for mineral_name in ACCEPTED_MINERAL_NAMES:
-            potential_name_combinations.append(varname + "_" + mineral_name)
+        if varname not in resolved_names:
+            print(varname)
+    
 
-    for varname in list(source_dataset.variables):
-        if varname not in potential_name_combinations:
-            nc_ds.close()
-            raise ValueError("Variable name not recognized as consistent with standardized names: " + varname)
-        add_variable(nc_ds, varname, "f4", varname, None, source_dataset.variables[varname][:], {"dimensions": tuple(out_dimensions)})
-
-        nc_ds.title += varname
-        for _vn, vn in enumerate(l4_naming['Long Name']):
-            if vn in varname:
-                nc_ds.summary += '\n' + l4_naming['Description'][_vn]
-                break
-
-    nc_ds.sync()
-    nc_ds.close()
+    
 
 
 
