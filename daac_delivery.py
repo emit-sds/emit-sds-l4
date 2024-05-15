@@ -69,9 +69,9 @@ def initialize_ummg(granule_name: str, creation_time: datetime, collection_name:
         ummg['AdditionalAttributes'].append({'Name': 'EARTH_SYSTEM_MODEL', 'Values': [str(esm)]})
     if resolution is not None:
         r = resolution.split("-")
-        ummg['AdditionalAttributes'].append({'Name': 'RESOLUTION_LATITUDE', 'Values': [f"{r[0]:.1f}"]})
-        ummg['AdditionalAttributes'].append({'Name': 'RESOLUTION_LONGITUDE', 'Values': [f"{r[1]:.1f}"]})
-        ummg['AdditionalAttributes'].append({'Name': 'RESOLUTION_LEVEL', 'Values': [f"{r[2]:.1f}"]})
+        ummg['AdditionalAttributes'].append({'Name': 'RESOLUTION_LATITUDE', 'Values': [str(r[0])]})
+        ummg['AdditionalAttributes'].append({'Name': 'RESOLUTION_LONGITUDE', 'Values': [str(r[1])]})
+        ummg['AdditionalAttributes'].append({'Name': 'NUM_VERTICAL_LEVELS', 'Values': [str(r[2])]})
     if in_mineralogy is not None:
         ummg['AdditionalAttributes'].append({'Name': 'INPUT_MINERALOGY', 'Values': [str(in_mineralogy)]})
     if ext_meteorology is not None:
@@ -325,11 +325,11 @@ def main():
 
     # Copy files to staging server
     wm = WorkflowManager(config_path=sds_config_path)
-    # print(f"Staging files to web server")
-    # stage_files(wm, paths)
+    print(f"Staging files to web server")
+    stage_files(wm, paths)
 
     # Build and submit CNM notification
-    # submit_cnm_notification(wm, granule_ur, paths, collection, l4_config["collection_version"])
+    submit_cnm_notification(wm, granule_ur, paths, collection, l4_config["collection_version"])
 
 
 if __name__ == '__main__':
