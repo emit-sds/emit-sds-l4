@@ -204,9 +204,9 @@ def submit_cnm_notification(wm, granule_ur, paths, collection, collection_versio
     for i, p in enumerate(paths):
         # ["data", "browse", "metadata"]
         format = "data"
-        if p.endswith(".png")
+        if p.endswith(".png"):
             format = "browse"
-        if p.endswith(".cmr.json")
+        if p.endswith(".cmr.json"):
             format = "metadata"
         notification["product"]["files"].append(
             {
@@ -281,7 +281,10 @@ def main():
     nc_paths = glob.glob(os.path.join(args.path, f"{granule_ur}*nc"))
     browse_path = os.path.join(args.path, f"{granule_ur}.png")
     ummg_path = os.path.join(args.path, f"{granule_ur}.cmr.json")
-    paths = nc_paths + browse_path + ummg_path
+    # paths = nc_paths + [browse_path] + [ummg_path]
+    paths = nc_paths + [ummg_path]
+
+    print(f"paths: {paths}")
 
     # Create the UMM-G file
     print(f"Creating ummg file at {ummg_path}")
@@ -289,9 +292,9 @@ def main():
     for p in nc_paths:
         creation_times.append(datetime.datetime.fromtimestamp(os.path.getmtime(p), tz=datetime.timezone.utc))
     daynight = "Day"
-    start_time = datetime.datetime(2022, 8, 10, 0, 0, 0, tz=datetime.timezone.utc)
-    stop_time = datetime.datetime(2023, 11, 30, 0, 0, 0, tz=datetime.timezone.utc)
-    datetime.datetime.strptime(f"2022-08-10T00:00:00Z", "%Y-%m-%dT%H:%M:%S")
+    # Start/stop times are in UTC - formatting is handled during UMM-G creation
+    start_time = datetime.datetime(2022, 8, 10, 0, 0, 0)
+    stop_time = datetime.datetime(2023, 11, 30, 0, 0, 0)
     ummg = initialize_ummg(granule_ur, min(creation_times), collection, l4_config["collection_version"],
                            start_time, stop_time, l4_config["repo_name"], l4_config["repo_version"],
                            l4_software_delivery_version=l4_config["repo_version"],
@@ -322,11 +325,11 @@ def main():
 
     # Copy files to staging server
     wm = WorkflowManager(config_path=sds_config_path)
-    print(f"Staging files to web server")
-    stage_files(wm, paths)
+    # print(f"Staging files to web server")
+    # stage_files(wm, paths)
 
     # Build and submit CNM notification
-    submit_cnm_notification(wm, granule_ur, paths, collection, l4_config["collection_version"])
+    # submit_cnm_notification(wm, granule_ur, paths, collection, l4_config["collection_version"])
 
 
 if __name__ == '__main__':
