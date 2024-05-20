@@ -103,10 +103,15 @@ def main():
     parser = argparse.ArgumentParser(description='netcdf conversion')
     parser.add_argument('input_file', type=str)
     parser.add_argument('output_base', type=str)
+    parser.add_argument('--output_dir', default='.')
     parser.add_argument('--dimensions', nargs=5, default=['bins','lon','lat','lev','time'])
     parser.add_argument('--use_dimensions', nargs=5, default=[1,1,1,1,1])
     parser.add_argument('--l4_naming_file', default='data/L4_varnames.csv')
     args = parser.parse_args()
+
+    output_dir = os.path.join(args.output_dir, args.output_base)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
     l4_naming = pd.read_csv(args.l4_naming_file)
 
@@ -141,7 +146,7 @@ def main():
 
         if len(l4_names) > 0:
             # Now make the output
-            nc_ds = Dataset(args.output_base + f'_{l4_naming["Suffix"][_v]}.nc', 'w', clobber=True, format='NETCDF4')
+            nc_ds = Dataset(f'{output_dir}/{args.output_base}' + f'_{l4_naming["Suffix"][_v]}.nc', 'w', clobber=True, format='NETCDF4')
             add_main_metadata(nc_ds)
             #TODO Add your high level sumary information for the specific model here - we'll automatically fill in per variable later:
             #nc_ds.summary += "This model is the XXXX and works like XXXX"
@@ -152,7 +157,7 @@ def main():
             for _n, name in enumerate(source_dataset.variables[l4_names[0]].dimensions):
                 nc_ds.createDimension(name, source_dataset.dimensions[name].size)
             # Add "lev" dimension if not yet added - only needed as dimension, not variable
-            if "lev" not in source_dataset.dimensions:
+            if "lev" not in nc_ds.dimensions:
                 nc_ds.createDimension("lev", source_dataset.dimensions["lev"].size)
 
             # Add variables for lat/lon/time
@@ -162,10 +167,10 @@ def main():
                 "lon": {"longname": "Longitude (WGS-84)", "dtype": "f8", "units": "degrees east"},
                 "time": {"longname": "Time", "dtype": "f8", "units": "months since 2006-01"}
             }
-            for var in geo_vars:
-                add_variable(nc_ds, var, var["dtype"], var["longname"], var["units"],
-                             source_dataset.variables[var][:],
-                             {"dimensions": source_dataset.variables[var].dimensions})
+            for k, v in geo_vars.items():
+                add_variable(nc_ds, k, v["dtype"], v["longname"], v["units"],
+                             source_dataset.variables[k][:],
+                             {"dimensions": source_dataset.variables[k].dimensions})
 
             # Add variables based on matching L4 variables in source dataset
             for _l4, l4_name in enumerate(l4_names):
