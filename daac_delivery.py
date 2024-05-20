@@ -18,10 +18,10 @@ from emit_main.workflow.workflow_manager import WorkflowManager
 
 
 def initialize_ummg(granule_name: str, creation_time: datetime, collection_name: str, collection_version: str,
-                    start_time: datetime, stop_time: datetime, pge_name: str, pge_version: str,
+                    start_year:str, end_year: str, pge_name: str, pge_version: str,
                     l4_software_delivery_version: str = None, doi: str = None,
                     esm: str = None, resolution: str = None, in_mineralogy: str = None,
-                    ext_meteorology: str = None, time_period: str = None, scenario: str = None):
+                    ext_meteorology: str = None, scenario: str = None):
     """ Initialize a UMMG metadata output file
     Args:
         granule_name: granule UR tag
@@ -45,8 +45,8 @@ def initialize_ummg(granule_name: str, creation_time: datetime, collection_name:
 
     ummg['TemporalExtent'] = {
         'RangeDateTime': {
-            'BeginningDateTime': start_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            'EndingDateTime': stop_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+            'BeginningDateTime': start_year,
+            'EndingDateTime': end_year
         }
     }
 
@@ -76,10 +76,9 @@ def initialize_ummg(granule_name: str, creation_time: datetime, collection_name:
         ummg['AdditionalAttributes'].append({'Name': 'INPUT_MINERALOGY', 'Values': [str(in_mineralogy)]})
     if ext_meteorology is not None:
         ummg['AdditionalAttributes'].append({'Name': 'EXTERNAL_METEOROLOGY', 'Values': [str(ext_meteorology)]})
-    if time_period is not None:
-        t = time_period.split("-")
-        ummg['AdditionalAttributes'].append({'Name': 'START_YEAR', 'Values': [str(t[0])]})
-        ummg['AdditionalAttributes'].append({'Name': 'END_YEAR', 'Values': [str(t[1])]})
+    # Insert start/end year
+    ummg['AdditionalAttributes'].append({'Name': 'START_YEAR', 'Values': [start_year]})
+    ummg['AdditionalAttributes'].append({'Name': 'END_YEAR', 'Values': [end_year]})
     if scenario is not None:
         ummg['AdditionalAttributes'].append({'Name': 'EMISSION_CONCENTRATION_SCENARIO', 'Values': [str(scenario)]})
 
@@ -254,12 +253,11 @@ def main():
         raise RuntimeError(output.stderr.decode("utf-8"))
     repo_version = output.stdout.decode("utf-8").replace("\n", "")
 
-    # TODO: If collection version and DOI don't go hand in hand then adjust dois below
     l4_config = {
         "collection_version": args.collection_version,
         "repo_name": "emit-sds-l4",
         "repo_version": repo_version,
-        "doi": "EMITL4ESM"
+        "doi": f"10.5067/EMIT/EMITL4ESM.{args.collection_version}"
     }
 
     print(f"Using sds_config_path: {sds_config_path}")
@@ -292,15 +290,13 @@ def main():
     for p in nc_paths:
         creation_times.append(datetime.datetime.fromtimestamp(os.path.getmtime(p), tz=datetime.timezone.utc))
     daynight = "Day"
-    # Start/stop times are in UTC - formatting is handled during UMM-G creation
-    start_time = datetime.datetime(2022, 8, 10, 0, 0, 0)
-    stop_time = datetime.datetime(2023, 11, 30, 0, 0, 0)
+    t = time_period.split("-")
     ummg = initialize_ummg(granule_ur, min(creation_times), collection, l4_config["collection_version"],
-                           start_time, stop_time, l4_config["repo_name"], l4_config["repo_version"],
+                           t[0], t[1], l4_config["repo_name"], l4_config["repo_version"],
                            l4_software_delivery_version=l4_config["repo_version"],
                            doi=l4_config["doi"], esm=esm, resolution=resolution,
                            in_mineralogy=in_mineralogy, ext_meteorology=ext_meteorology,
-                           time_period=time_period, scenario=scenario)
+                           scenario=scenario)
     ummg = add_data_files_ummg(ummg, paths[:-1], daynight)
 
     # ummg = add_boundary_ummg(ummg, acq.gring)
