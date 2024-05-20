@@ -140,7 +140,7 @@ def main():
 
         if len(l4_names) > 0:
             # Now make the output
-            nc_ds = Dataset(os.path.splitext(args.output_base)[0] + f'_{varname}.nc', 'w', clobber=True, format='NETCDF4')
+            nc_ds = Dataset(args.output_base + f'_{l4_naming["Suffix"][_v]}.nc', 'w', clobber=True, format='NETCDF4')
             add_main_metadata(nc_ds)
             #TODO Add your high level sumary information for the specific model here - we'll automatically fill in per variable later:
             #nc_ds.summary += "This model is the XXXX and works like XXXX"
