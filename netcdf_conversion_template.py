@@ -8,7 +8,8 @@ from datetime import datetime
 import pandas as pd
 
 
-NODATA=-9999
+NODATA = -9999
+
 
 def add_main_metadata(nc_ds):
     nc_ds.ncei_template_version = "NCEI_NetCDF_Swath_Template_v2.0"  
@@ -20,7 +21,6 @@ features of iron oxides, clays, sulfates, carbonates, and other dust-forming min
 EMIT will observe the sunlit Earth's dust source regions that occur within +/-52° latitude and produce maps of the \
 source regions that can be used to improve forecasts of the role of mineral dust in the radiative forcing \
 (warming or cooling) of the atmosphere.\n"
-
 
     nc_ds.keywords = "Imaging Spectroscopy, minerals, EMIT, dust, radiative forcing"
     nc_ds.Conventions = "CF-1.63, ACDD-1.3"
@@ -70,8 +70,6 @@ def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs):
     else:
         nc_var[...] = data
     nc_ds.sync()
-
-
 
 
 ACCEPTED_MINERAL_NAMES = [
@@ -124,6 +122,7 @@ def main():
         
         l4_names = []
         l4_longnames = []
+        l4_units = []
         if l4_naming['Mineral Repeat'][_v]:
             for mineral_name in ACCEPTED_MINERAL_NAMES:
                 ds_name = varname + "_" + mineral_name
@@ -131,11 +130,13 @@ def main():
                 if ds_name in list(source_dataset.variables):
                     l4_names.append(ds_name)
                     l4_longnames.append(ds_longname)
+                    l4_units.append(l4_naming['Units'][_v])
                     resolved_names.append(varname)
         else:
             if varname in list(source_dataset.variables):
                 l4_names.append(varname)
                 l4_longnames.append(l4_naming['Long Name'][_v])
+                l4_units.append(l4_naming['Units'][_v])
                 resolved_names.append(varname)
 
         if len(l4_names) > 0:
@@ -147,12 +148,28 @@ def main():
 
             #nc_ds.input_description += "This is how this model went from EMIT L3 to the specified input"
             nc_ds.sync()
+            # Add dimensions based on matching L4 variables in source dataset
             for _n, name in enumerate(source_dataset.variables[l4_names[0]].dimensions):
                 nc_ds.createDimension(name, source_dataset.dimensions[name].size)
+            # Add "lev" dimension if not yet added - only needed as dimension, not variable
+            if "lev" not in source_dataset.dimensions:
+                nc_ds.createDimension("lev", source_dataset.dimensions["lev"].size)
 
+            # Add variables for lat/lon/time
+            # TODO: What about lev? Also, is time units correct or do we need to get this from the start_year?
+            geo_vars = {
+                "lat": {"longname": "Latitude (WGS-84)", "dtype": "f8", "units": "degrees north"},
+                "lon": {"longname": "Longitude (WGS-84)", "dtype": "f8", "units": "degrees east"},
+                "time": {"longname": "Time", "dtype": "f8", "units": "months since 2006-01"}
+            }
+            for var in geo_vars:
+                add_variable(nc_ds, var, var["dtype"], var["longname"], var["units"],
+                             source_dataset.variables[var][:],
+                             {"dimensions": source_dataset.variables[var].dimensions})
 
+            # Add variables based on matching L4 variables in source dataset
             for _l4, l4_name in enumerate(l4_names):
-                add_variable(nc_ds, l4_name, "f4", l4_longnames[_l4], None, source_dataset.variables[l4_name][:], {"dimensions": source_dataset.variables[l4_name].dimensions})
+                add_variable(nc_ds, l4_name, "f4", l4_longnames[_l4], l4_units[_l4], source_dataset.variables[l4_name][:], {"dimensions": source_dataset.variables[l4_name].dimensions})
 
             nc_ds.title += varname
             for _vn, vn in enumerate(l4_naming['Long Name']):
