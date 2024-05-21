@@ -58,6 +58,22 @@ source regions that can be used to improve forecasts of the role of mineral dust
 def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs):
     kargs['fill_value'] = NODATA
 
+    
+    keys = list(kargs['dimensions'])
+    idx = list(range(len(keys)))
+    if 'lon' in keys and 'lat' in keys:
+        lon_idx = list(kargs['dimensions']).index('lon')
+        if keys.index('lon') == 0 or keys.index('lat') == 0:
+            new_key = keys.pop(2)
+            keys.insert(0,new_key)
+            kargs['dimensions'] = keys
+
+            idx.pop(2)
+            idx.insert(0,2)
+
+
+
+
     nc_var = nc_ds.createVariable(nc_name, data_type, **kargs)
     if long_name is not None:
         nc_var.long_name = long_name
@@ -68,7 +84,7 @@ def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs):
         for _n in range(len(data)):
             nc_var[_n] = data[_n]
     else:
-        nc_var[...] = data
+        nc_var[...] = data.transpose(idx)
     nc_ds.sync()
 
 
@@ -163,12 +179,12 @@ def main():
             # Add variables for lat/lon/time
             # TODO: What about lev? Also, is time units correct or do we need to get this from the start_year?
             geo_vars = {
-                "lat": {"longname": "Latitude (WGS-84)", "dtype": "f8", "units": "degrees north"},
-                "lon": {"longname": "Longitude (WGS-84)", "dtype": "f8", "units": "degrees east"},
-                "time": {"longname": "Time", "dtype": "f8", "units": "months since 2006-01"}
+                "lat": {"shortname": "lat", "longname": "Latitude (WGS-84)", "dtype": "f8", "units": "degrees north"},
+                "lon": {"shortname": "lon", "longname": "Longitude (WGS-84)", "dtype": "f8", "units": "degrees east"},
+                "time": {"shortname": "time", "longname": "Time", "dtype": "f8", "units": "months since 2006-01"}
             }
             for k, v in geo_vars.items():
-                add_variable(nc_ds, k, v["dtype"], v["longname"], v["units"],
+                add_variable(nc_ds, v['shortname'], v["dtype"], v["longname"], v["units"],
                              source_dataset.variables[k][:],
                              {"dimensions": source_dataset.variables[k].dimensions})
 
