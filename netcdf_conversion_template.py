@@ -10,6 +10,9 @@ import pandas as pd
 
 NODATA = -9999
 
+# TODO:
+# [ ] Get time units from date field
+# [ ] Map incorrect variable names if needed
 
 def add_main_metadata(nc_ds):
     nc_ds.ncei_template_version = "NCEI_NetCDF_Swath_Template_v2.0"  
@@ -40,9 +43,9 @@ source regions that can be used to improve forecasts of the role of mineral dust
     # Feel free to modify
     nc_ds.creator_name = "Jet Propulsion Laboratory/California Institute of Technology"
 
-    nc_ds.creator_url = "https://www.jpl.nasa.gov/"
+    nc_ds.creator_url = "https://www.jpl.nasa.gov"
     nc_ds.project = "Earth Surface Mineral Dust Source Investigation"
-    nc_ds.project_url = "https://emit.jpl.nasa.gov/emit"
+    nc_ds.project_url = "https://earth.jpl.nasa.gov/emit"
     nc_ds.publisher_name = "NASA LPDAAC"
     nc_ds.publisher_url = "https://lpdaac.usgs.gov"
     nc_ds.publisher_email = "lpdaac@usgs.gov"
@@ -114,6 +117,12 @@ ACCEPTED_MINERAL_NAMES = [
     'GyHe' 
 ]
 
+# TODO: Complete this section if needed and use logic to correct wrongly named variables
+VARIABLE_MAPPING = {
+    "dust_sw_rf_srf": "dust_sw_rf_sfc",
+    "dust_lw_rf_srf": "dust_lw_rf_sfc"
+}
+
 
 def main():
     parser = argparse.ArgumentParser(description='netcdf conversion')
@@ -181,7 +190,7 @@ def main():
             geo_vars = {
                 "lat": {"shortname": "lat", "longname": "Latitude (WGS-84)", "dtype": "f8", "units": "degrees north"},
                 "lon": {"shortname": "lon", "longname": "Longitude (WGS-84)", "dtype": "f8", "units": "degrees east"},
-                "time": {"shortname": "time", "longname": "Time", "dtype": "f8", "units": "months since 2006-01"}
+                "time": {"shortname": "time", "longname": "Time", "dtype": "f8", "units": "months since 2007-01"}
             }
             for k, v in geo_vars.items():
                 add_variable(nc_ds, v['shortname'], v["dtype"], v["longname"], v["units"],
@@ -192,11 +201,13 @@ def main():
             for _l4, l4_name in enumerate(l4_names):
                 add_variable(nc_ds, l4_name, "f4", l4_longnames[_l4], l4_units[_l4], source_dataset.variables[l4_name][:], {"dimensions": source_dataset.variables[l4_name].dimensions})
 
-            nc_ds.title += varname
-            for _vn, vn in enumerate(l4_naming['Long Name']):
-                if vn in varname:
-                    nc_ds.summary += '\n' + l4_naming['Description'][_vn]
-                    break
+            # nc_ds.title += varname
+            # for _vn, vn in enumerate(l4_naming['Long Name']):
+            #     if vn in varname:
+            #         nc_ds.summary += '\n' + l4_naming['Description'][_vn]
+            #         break
+            nc_ds.title += l4_naming['Long Name'][_v]
+            nc_ds.summary += l4_naming['Description'][_v]
 
             nc_ds.sync()
             nc_ds.close()
