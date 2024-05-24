@@ -194,8 +194,9 @@ def main():
             geo_vars = {
                 "lat": {"shortname": "lat", "longname": "Latitude (WGS-84)", "dtype": "f8", "units": "degrees north"},
                 "lon": {"shortname": "lon", "longname": "Longitude (WGS-84)", "dtype": "f8", "units": "degrees east"},
-                "time": {"shortname": "time", "longname": "Time", "dtype": "str", "units": "none"}
             }
+            if 'time' in nc_ds.dimensions:
+                geo_vars['time'] = {"shortname": "time", "longname": "Time", "dtype": "str", "units": "none"}
             for k, v in geo_vars.items():
                 print(f"Creating {k}")
                 # Tried to hard code this but still failed, so reverted below
