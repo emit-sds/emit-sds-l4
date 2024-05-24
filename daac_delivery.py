@@ -45,8 +45,8 @@ def initialize_ummg(granule_name: str, creation_time: datetime, collection_name:
 
     ummg['TemporalExtent'] = {
         'RangeDateTime': {
-            'BeginningDateTime': start_year,
-            'EndingDateTime': end_year
+            'BeginningDateTime': f'{start_year}-01-01T00:00:00Z',
+            'EndingDateTime': f'{end_year}-12-31T23:59:59Z'
         }
     }
 
