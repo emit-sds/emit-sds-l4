@@ -129,14 +129,17 @@ VARIABLE_MAPPING = {
 def main():
     parser = argparse.ArgumentParser(description='netcdf conversion')
     parser.add_argument('input_file', type=str)
-    parser.add_argument('output_base', type=str)
     parser.add_argument('--output_dir', default='.')
     parser.add_argument('--dimensions', nargs=5, default=['bins','lon','lat','lev','time'])
     parser.add_argument('--use_dimensions', nargs=5, default=[1,1,1,1,1])
     parser.add_argument('--l4_naming_file', default='data/L4_varnames.csv')
+    parser.add_argument('--model_lookup', default='data/models.csv')
     args = parser.parse_args()
 
-    output_dir = os.path.join(args.output_dir, args.output_base)
+    lk = pd.read_csv(args.model_lookup)
+    output_base = lk.loc[lk["Input Filename" == os.path.basename(args.input_file)], Granule Name].values[0]
+
+    output_dir = os.path.join(args.output_dir, output_base)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -177,7 +180,7 @@ def main():
 
         if len(l4_names) > 0:
             # Now make the output
-            nc_ds = Dataset(f'{output_dir}/{args.output_base}' + f'_{l4_naming["Suffix"][_v]}.nc', 'w', clobber=True, format='NETCDF4')
+            nc_ds = Dataset(f'{output_dir}/{output_base}' + f'_{l4_naming["Suffix"][_v]}.nc', 'w', clobber=True, format='NETCDF4')
             add_main_metadata(nc_ds)
             #TODO Add your high level sumary information for the specific model here - we'll automatically fill in per variable later:
             #nc_ds.summary += "This model is the XXXX and works like XXXX"
@@ -192,12 +195,10 @@ def main():
                 nc_ds.createDimension("lev", source_dataset.dimensions["lev"].size)
 
             # Add variables for lat/lon/time
-            sm = str(min(source_dataset.variables["Date"][:]))
-            start_month = sm[:4] + "-" + sm[4:]
             geo_vars = {
                 "lat": {"shortname": "lat", "longname": "Latitude (WGS-84)", "dtype": "f8", "units": "degrees north"},
                 "lon": {"shortname": "lon", "longname": "Longitude (WGS-84)", "dtype": "f8", "units": "degrees east"},
-                "time": {"shortname": "time", "longname": "Time", "dtype": "f8", "units": f"months since {start_month}"}
+                "time": {"shortname": "time", "longname": "Time", "dtype": "f8", "units": "none"}
             }
             for k, v in geo_vars.items():
                 add_variable(nc_ds, v['shortname'], v["dtype"], v["longname"], v["units"],
