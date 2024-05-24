@@ -137,8 +137,8 @@ def main():
     args = parser.parse_args()
 
     lk = pd.read_csv(args.model_lookup)
-    output_base = lk.loc[lk["Input Filename" == os.path.basename(args.input_file)], Granule Name].values[0]
-
+    output_base = lk.loc[lk["Input Filename"] == os.path.basename(args.input_file), "Granule Name"].values[0]
+    print(f"Using granule name from lookup: {output_base}")
     output_dir = os.path.join(args.output_dir, output_base)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
