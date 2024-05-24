@@ -83,7 +83,7 @@ def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs):
     if units is not None:
         nc_var.units = units
 
-    if data_type is str:
+    if data_type is "str":
         for _n in range(len(data)):
             nc_var[_n] = data[_n]
     else:
@@ -119,10 +119,6 @@ ACCEPTED_MINERAL_NAMES = [
 
 # TODO: Complete this section if needed and use logic to correct wrongly named variables
 VARIABLE_MAPPING = {
-    "dust_sw_rf_srf": "dust_sw_rf_sfc",
-    "dust_lw_rf_srf": "dust_lw_rf_sfc",
-    "wet_deposition": "wet_dep",
-    "dry_deposition": "dry_dep"
 }
 
 
@@ -198,7 +194,7 @@ def main():
             geo_vars = {
                 "lat": {"shortname": "lat", "longname": "Latitude (WGS-84)", "dtype": "f8", "units": "degrees north"},
                 "lon": {"shortname": "lon", "longname": "Longitude (WGS-84)", "dtype": "f8", "units": "degrees east"},
-                "time": {"shortname": "time", "longname": "Time", "dtype": "f8", "units": "none"}
+                "time": {"shortname": "time", "longname": "Time", "dtype": "str", "units": "none"}
             }
             for k, v in geo_vars.items():
                 add_variable(nc_ds, v['shortname'], v["dtype"], v["longname"], v["units"],
