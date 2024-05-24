@@ -120,7 +120,9 @@ ACCEPTED_MINERAL_NAMES = [
 # TODO: Complete this section if needed and use logic to correct wrongly named variables
 VARIABLE_MAPPING = {
     "dust_sw_rf_srf": "dust_sw_rf_sfc",
-    "dust_lw_rf_srf": "dust_lw_rf_sfc"
+    "dust_lw_rf_srf": "dust_lw_rf_sfc",
+    "wet_deposition": "wet_dep",
+    "dry_deposition": "dry_dep"
 }
 
 
@@ -139,9 +141,13 @@ def main():
         os.makedirs(output_dir)
 
     l4_naming = pd.read_csv(args.l4_naming_file)
+    # Add duplicated mapped rows
+    for k, v in VARIABLE_MAPPING.items():
+        mapped_row = l4_naming.loc[l4_naming['Short Name'] == v].copy()
+        mapped_row['Short Name'] = k
+        l4_naming = l4_naming.append(mapped_row, ignore_index=True)
 
     source_dataset = Dataset(args.input_file, 'r')
-
 
     resolved_names = []
     leftover_names = []
@@ -186,11 +192,12 @@ def main():
                 nc_ds.createDimension("lev", source_dataset.dimensions["lev"].size)
 
             # Add variables for lat/lon/time
-            # TODO: What about lev? Also, is time units correct or do we need to get this from the start_year?
+            sm = str(min(source_dataset.variables["Date"][:]))
+            start_month = sm[:4] + "-" + sm[4:]
             geo_vars = {
                 "lat": {"shortname": "lat", "longname": "Latitude (WGS-84)", "dtype": "f8", "units": "degrees north"},
                 "lon": {"shortname": "lon", "longname": "Longitude (WGS-84)", "dtype": "f8", "units": "degrees east"},
-                "time": {"shortname": "time", "longname": "Time", "dtype": "f8", "units": "months since 2007-01"}
+                "time": {"shortname": "time", "longname": "Time", "dtype": "f8", "units": f"months since {start_month}"}
             }
             for k, v in geo_vars.items():
                 add_variable(nc_ds, v['shortname'], v["dtype"], v["longname"], v["units"],
@@ -199,14 +206,18 @@ def main():
 
             # Add variables based on matching L4 variables in source dataset
             for _l4, l4_name in enumerate(l4_names):
-                add_variable(nc_ds, l4_name, "f4", l4_longnames[_l4], l4_units[_l4], source_dataset.variables[l4_name][:], {"dimensions": source_dataset.variables[l4_name].dimensions})
+                dest_l4_name = l4_name
+                for k, v in VARIABLE_MAPPING.items():
+                    if l4_name.startswith(k):
+                        dest_l4_name = l4_name.replace(k, v)
+                if dest_l4_name != l4_name:
+                    print(f"Creating {dest_l4_name} (mapped from {l4_name})")
+                else:
+                    print(f"Creating {dest_l4_name}")
+                add_variable(nc_ds, dest_l4_name, "f4", l4_longnames[_l4], l4_units[_l4], source_dataset.variables[l4_name][:], {"dimensions": source_dataset.variables[l4_name].dimensions})
 
-            # nc_ds.title += varname
-            # for _vn, vn in enumerate(l4_naming['Long Name']):
-            #     if vn in varname:
-            #         nc_ds.summary += '\n' + l4_naming['Description'][_vn]
-            #         break
-            nc_ds.title += l4_naming['Long Name'][_v]
+            title = l4_naming['Long Name'][_v].replace("_", " ").replace("radiativeforcing", "radiative forcing").replace("topofatmosphere", "top of atmosphere").title()
+            nc_ds.title += title
             nc_ds.summary += l4_naming['Description'][_v]
 
             nc_ds.sync()
@@ -214,10 +225,13 @@ def main():
 
 
     resolved_names = np.unique(np.array(resolved_names)).tolist()
+    for k, v in VARIABLE_MAPPING.items():
+        if k in resolved_names:
+            resolved_names.append(v)
     print(f'Succesfully Resolved: {resolved_names}')
     print(f'\n')
-    print(f'Unresolved variables:')
-    for varname in zip(l4_naming['Short Name'],l4_naming['Long Name']):
+    print(f'Unresolved names:')
+    for varname in l4_naming['Short Name']:
         if varname not in resolved_names:
             print(varname)
     
@@ -229,3 +243,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
