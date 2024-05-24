@@ -83,7 +83,7 @@ def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs):
     if units is not None:
         nc_var.units = units
 
-    if data_type is "str":
+    if data_type is str:
         for _n in range(len(data)):
             nc_var[_n] = data[_n]
     else:
@@ -197,7 +197,10 @@ def main():
                 "time": {"shortname": "time", "longname": "Time", "dtype": "str", "units": "none"}
             }
             for k, v in geo_vars.items():
-                add_variable(nc_ds, v['shortname'], v["dtype"], v["longname"], v["units"],
+                print(f"Creating {k}")
+                # Tried to hard code this but still failed, so reverted below
+                # dimensions = ('time',) if k == "time" else source_dataset.variables[k].dimensions
+                add_variable(nc_ds, v['shortname'], source_dataset.variables[k].dtype, v["longname"], v["units"],
                              source_dataset.variables[k][:],
                              {"dimensions": source_dataset.variables[k].dimensions})
 
