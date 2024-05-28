@@ -176,6 +176,7 @@ def main():
 
         if len(l4_names) > 0:
             # Now make the output
+            print(f'Creating file {output_dir}/{output_base}' + f'_{l4_naming["Suffix"][_v]}.nc with variables:')
             nc_ds = Dataset(f'{output_dir}/{output_base}' + f'_{l4_naming["Suffix"][_v]}.nc', 'w', clobber=True, format='NETCDF4')
             add_main_metadata(nc_ds)
             #TODO Add your high level sumary information for the specific model here - we'll automatically fill in per variable later:
