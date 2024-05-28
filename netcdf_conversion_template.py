@@ -10,9 +10,6 @@ import pandas as pd
 
 NODATA = -9999
 
-# TODO:
-# [ ] Get time units from date field
-# [ ] Map incorrect variable names if needed
 
 def add_main_metadata(nc_ds):
     nc_ds.ncei_template_version = "NCEI_NetCDF_Swath_Template_v2.0"  
@@ -117,7 +114,7 @@ ACCEPTED_MINERAL_NAMES = [
     'GyHe' 
 ]
 
-# TODO: Complete this section if needed and use logic to correct wrongly named variables
+# If needed, map variable to correct name (e.g. {"incorrect_name": "correct_name"})
 VARIABLE_MAPPING = {
 }
 

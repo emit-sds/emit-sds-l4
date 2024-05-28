@@ -13,6 +13,7 @@ import os
 import subprocess
 
 import numpy as np
+import pandas as pd
 
 from emit_main.workflow.workflow_manager import WorkflowManager
 
@@ -68,7 +69,7 @@ def initialize_ummg(granule_name: str, creation_time: datetime, collection_name:
     if esm is not None:
         ummg['AdditionalAttributes'].append({'Name': 'EARTH_SYSTEM_MODEL', 'Values': [str(esm)]})
     if resolution is not None:
-        r = resolution.split("-")
+        r = resolution.split(" x ")
         ummg['AdditionalAttributes'].append({'Name': 'RESOLUTION_LATITUDE', 'Values': [str(r[0])]})
         ummg['AdditionalAttributes'].append({'Name': 'RESOLUTION_LONGITUDE', 'Values': [str(r[1])]})
         ummg['AdditionalAttributes'].append({'Name': 'NUM_VERTICAL_LEVELS', 'Values': [str(r[2])]})
@@ -241,6 +242,7 @@ def main():
     parser.add_argument("path", help="The path to the directory of the granule to be delivered.")
     parser.add_argument("--env", default="ops", help="The operating environment - dev, test, ops")
     parser.add_argument("--collection_version", default="001", help="The DAAC collection version")
+    parser.add_argument('--model_lookup', default='data/models.csv')
     args = parser.parse_args()
 
     # Get workflow manager and ghg config options
@@ -268,13 +270,14 @@ def main():
     # See https://github.com/emit-sds/emit-sds-l4/blob/main/README.md for description of fields
     collection = "EMITL4ESM"
     granule_ur = os.path.basename(args.path)
-    tokens = granule_ur.split("_")
-    esm = tokens[4]
-    resolution = tokens[5]
-    in_mineralogy = tokens[6]
-    ext_meteorology = tokens[7]
-    time_period = tokens[8]
-    scenario = tokens[9]
+    df = pd.read_csv(args.model_lookup)
+    row = df.loc[df["Input Filename"] == os.path.basename]
+    esm = row["ESM"].values[0]
+    resolution = row["Resolution"].values[0]
+    in_mineralogy = row["Input Minerology"].values[0]
+    ext_meteorology = row["External Meteorology"].values[0]
+    time_period = row["Time Period"].values[0]
+    scenario = row["Emissions/concentration scenario"].values[0]
 
     nc_paths = glob.glob(os.path.join(args.path, f"{granule_ur}*nc"))
     browse_path = os.path.join(args.path, f"{granule_ur}.png")
