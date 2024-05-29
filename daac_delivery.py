@@ -271,7 +271,7 @@ def main():
     collection = "EMITL4ESM"
     granule_ur = os.path.basename(args.path)
     df = pd.read_csv(args.model_lookup)
-    row = df.loc[df["Input Filename"] == os.path.basename]
+    row = df.loc[df["Granule Name"] == granule_ur]
     esm = row["ESM"].values[0]
     resolution = row["Resolution"].values[0]
     in_mineralogy = row["Input Minerology"].values[0]
