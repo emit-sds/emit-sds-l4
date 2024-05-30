@@ -62,16 +62,13 @@ def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs):
     keys = list(kargs['dimensions'])
     idx = list(range(len(keys)))
     if 'lon' in keys and 'lat' in keys:
-        lon_idx = list(kargs['dimensions']).index('lon')
-        if keys.index('lon') == 0 or keys.index('lat') == 0:
-            new_key = keys.pop(2)
-            keys.insert(0,new_key)
-            kargs['dimensions'] = keys
 
-            idx.pop(2)
-            idx.insert(0,2)
+        newkeys = [x for x in keys if (x != 'lon' and x != 'lat')]
+        newkeys.insert(len(keys)-2,'lat')
+        newkeys.insert(len(keys)-1,'lon')
 
-
+        idx = [keys.index(x) for x in newkeys]
+        kargs['dimensions'] = newkeys
 
 
     nc_var = nc_ds.createVariable(nc_name, data_type, **kargs)
