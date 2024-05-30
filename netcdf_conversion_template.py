@@ -82,6 +82,17 @@ def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs):
             nc_var[_n] = data[_n]
     else:
         nc_var[...] = data.transpose(idx)
+
+    # Add grid mapping variable if doesn't exist
+    if 'transverse_mercator' not in nc_ds.variables:
+        grid_mapping = nc_ds.createVariable('transverse_mercator', 'i4')
+        grid_mapping.grid_mapping_name = 'transverse_mercator'
+        grid_mapping.latitude_of_projection_origin = 0.0
+        grid_mapping.longitude_of_central_meridian = 0.0
+        grid_mapping.scale_factor_at_central_meridian = 1.0
+    if 'lon' in keys and 'lat' in keys:
+        nc_var.grid_mapping = 'transverse_mercator'
+
     nc_ds.sync()
 
 
@@ -218,7 +229,6 @@ def main():
 
             nc_ds.sync()
             nc_ds.close()
-
 
     resolved_names = np.unique(np.array(resolved_names)).tolist()
     for k, v in VARIABLE_MAPPING.items():
