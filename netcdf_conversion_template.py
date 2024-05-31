@@ -83,6 +83,11 @@ def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs):
     else:
         nc_var[...] = data.transpose(idx)
 
+    if nc_name == "lat":
+        nc_var.standard_name = "latitude"
+    if nc_name == "lon":
+        nc_var.standard_name = "longitude"
+
     # Add grid mapping variable if doesn't exist
     if 'transverse_mercator' not in nc_ds.variables:
         grid_mapping = nc_ds.createVariable('transverse_mercator', 'i4')
@@ -198,8 +203,8 @@ def main():
 
             # Add variables for lat/lon/time
             geo_vars = {
-                "lat": {"shortname": "lat", "longname": "Latitude (WGS-84)", "dtype": "f8", "units": "degrees north"},
-                "lon": {"shortname": "lon", "longname": "Longitude (WGS-84)", "dtype": "f8", "units": "degrees east"},
+                "lat": {"shortname": "lat", "longname": "Latitude (WGS-84)", "dtype": "f8", "units": "degrees_north"},
+                "lon": {"shortname": "lon", "longname": "Longitude (WGS-84)", "dtype": "f8", "units": "degrees_east"},
             }
             if 'time' in nc_ds.dimensions:
                 geo_vars['time'] = {"shortname": "time", "longname": "Time", "dtype": "str", "units": "none"}
