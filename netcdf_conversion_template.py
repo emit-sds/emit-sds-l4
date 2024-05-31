@@ -6,6 +6,7 @@ import numpy as np
 import os
 from datetime import datetime
 import pandas as pd
+from osgeo import osr
 
 
 NODATA = -9999
@@ -84,12 +85,31 @@ def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs):
         nc_var[...] = data.transpose(idx)
 
     # Add grid mapping variable if doesn't exist
-    if 'transverse_mercator' not in nc_ds.variables:
+    if 'transverse_mercator' not in nc_ds.variables and 'lat' in keys and 'lon' in keys:
+
+        
         grid_mapping = nc_ds.createVariable('transverse_mercator', 'i4')
         grid_mapping.grid_mapping_name = 'transverse_mercator'
         grid_mapping.latitude_of_projection_origin = 0.0
         grid_mapping.longitude_of_central_meridian = 0.0
         grid_mapping.scale_factor_at_central_meridian = 1.0
+
+
+        lat = np.sort(nc_ds.variables['lat'])
+        lon = np.sort(nc_ds.variables['lon'])
+        dlat = lat[-3]-lat[-2]
+        dlon = lon[2]-lon[1]
+        grid_mapping.GeoTransform = f"{lon[0] - dlon/2.} {dlon} 0 {lat[-1] - dlat/2.} 0 {dlat} "
+        #print(f"{lon[0] - dlon/2.} {dlon} 0 {lat[-1] - dlat/2.} 0 {dlat} ")
+        #print(len(lat), lat[-2], lat[-1])
+
+        spatial_ref = osr.SpatialReference()
+        spatial_ref.ImportFromEPSG(4326)
+        wkt = spatial_ref.ExportToWkt()
+        grid_mapping.spatial_ref = wkt
+
+
+
     if 'lon' in keys and 'lat' in keys:
         nc_var.grid_mapping = 'transverse_mercator'
 
