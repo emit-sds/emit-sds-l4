@@ -111,15 +111,15 @@ ACCEPTED_MINERAL_NAMES = [
     'Calc',
     'Quar',
     'Feld',
-    'Hema',
+    'FeOx',
     'Gyps',
-    'IlHe',
-    'KaHe',
-    'SmHe',
-    'CaHe',
-    'QuHe',
-    'FeHe',
-    'GyHe' 
+    'IlFe',
+    'KaFe',
+    'SmFe',
+    'CaFe',
+    'QuFe',
+    'FeFe',
+    'GyFe'
 ]
 
 # If needed, map variable to correct name (e.g. {"incorrect_name": "correct_name"})
