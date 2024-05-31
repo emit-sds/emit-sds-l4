@@ -104,7 +104,9 @@ def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs):
         lon = np.sort(nc_ds.variables['lon'])
         dlat = lat[-3]-lat[-2]
         dlon = lon[2]-lon[1]
-        grid_mapping.GeoTransform = f"{lon[0] - dlon/2.} {dlon} 0 {lat[-1] - dlat/2.} 0 {dlat} "
+        grid_mapping.GeoTransform = f"{lon[0] + dlon/2.} {dlon} 0 {lat[-2] - dlat/2.} 0 {dlat} "
+        print(grid_mapping.GeoTransform)
+        import ipdb; ipdb.set_trace()
         #print(f"{lon[0] - dlon/2.} {dlon} 0 {lat[-1] - dlat/2.} 0 {dlat} ")
         #print(len(lat), lat[-2], lat[-1])
 
