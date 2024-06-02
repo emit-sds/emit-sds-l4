@@ -56,7 +56,7 @@ source regions that can be used to improve forecasts of the role of mineral dust
     nc_ds.title = "EMIT L4 Earth System Model Products V001; "
 
 
-def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs):
+def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs, flip_y=False):
     kargs['fill_value'] = NODATA
 
     
@@ -82,7 +82,13 @@ def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs):
         for _n in range(len(data)):
             nc_var[_n] = data[_n]
     else:
-        nc_var[...] = data.transpose(idx)
+        out_dat = data.transpose(idx).copy()
+        if flip_y:
+            lat_ax = newkeys.index('lat')
+            slices = [slice(None)] * out_dat.ndim
+            slices[lat_ax] = np.arange(out_dat.shape[lat_ax])[::-1]
+            out_dat = out_dat[tuple(slices)]
+        nc_var[...] = out_dat
 
     if nc_name == "lat":
         nc_var.standard_name = "latitude"
@@ -223,19 +229,20 @@ def main():
                 nc_ds.createDimension("lev", source_dataset.dimensions["lev"].size)
 
             # Add variables for lat/lon/time
-            geo_vars = {
-                "lat": {"shortname": "lat", "longname": "Latitude (WGS-84)", "dtype": "f8", "units": "degrees_north"},
-                "lon": {"shortname": "lon", "longname": "Longitude (WGS-84)", "dtype": "f8", "units": "degrees_east"},
-            }
+            lat = np.array(source_dataset.variables['lat'][:])
+            if lat[1] > lat[0]:
+                flip_y = True
+                lat = lat[::-1]
+            add_variable(nc_ds, 'lat', source_dataset.variables['lat'].dtype, 'Latitude (WGS-84)', 'degrees_north',
+                         lat, {"dimensions": source_dataset.variables['lat'].dimensions})
+            add_variable(nc_ds, 'lon', source_dataset.variables['lon'].dtype, 'Longitude (WGS-84)', 'degrees_east',
+                         source_dataset.variables['lon'][:], {"dimensions": source_dataset.variables['lon'].dimensions})
+
             if 'time' in nc_ds.dimensions:
-                geo_vars['time'] = {"shortname": "time", "longname": "Time", "dtype": "str", "units": "none"}
-            for k, v in geo_vars.items():
-                print(f"Creating {k}")
-                # Tried to hard code this but still failed, so reverted below
-                # dimensions = ('time',) if k == "time" else source_dataset.variables[k].dimensions
-                add_variable(nc_ds, v['shortname'], source_dataset.variables[k].dtype, v["longname"], v["units"],
-                             source_dataset.variables[k][:],
-                             {"dimensions": source_dataset.variables[k].dimensions})
+                add_variable(nc_ds, 'time', source_dataset.variables['time'].dtype, 'Time', 'none',
+                             source_dataset.variables['time'][:],
+                             {"dimensions": source_dataset.variables['time'].dimensions})
+
 
             # Add variables based on matching L4 variables in source dataset
             for _l4, l4_name in enumerate(l4_names):
@@ -247,7 +254,7 @@ def main():
                     print(f"Creating {dest_l4_name} (mapped from {l4_name})")
                 else:
                     print(f"Creating {dest_l4_name}")
-                add_variable(nc_ds, dest_l4_name, "f4", l4_longnames[_l4], l4_units[_l4], source_dataset.variables[l4_name][:], {"dimensions": source_dataset.variables[l4_name].dimensions})
+                add_variable(nc_ds, dest_l4_name, "f4", l4_longnames[_l4], l4_units[_l4], source_dataset.variables[l4_name][:], {"dimensions": source_dataset.variables[l4_name].dimensions}, flip_y)
 
             title = l4_naming['Long Name'][_v].replace("_", " ").replace("radiativeforcing", "radiative forcing").replace("topofatmosphere", "top of atmosphere").title()
             nc_ds.title += title
