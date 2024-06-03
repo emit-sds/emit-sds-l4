@@ -169,7 +169,8 @@ def main():
     args = parser.parse_args()
 
     lk = pd.read_csv(args.model_lookup)
-    output_base = lk.loc[lk["Input Filename"] == os.path.basename(args.input_file), "Granule Name"].values[0]
+    lk_idx = lk["Input Filename"] == os.path.basename(args.input_file)
+    output_base = lk.loc[lk_idx, "Granule Name"].values[0]
     print(f"Using granule name from lookup: {output_base}")
     output_dir = os.path.join(args.output_dir, output_base)
     if not os.path.exists(output_dir):
@@ -215,10 +216,12 @@ def main():
             print(f'Creating file {output_dir}/{output_base}' + f'_{l4_naming["Suffix"][_v]}.nc with variables:')
             nc_ds = Dataset(f'{output_dir}/{output_base}' + f'_{l4_naming["Suffix"][_v]}.nc', 'w', clobber=True, format='NETCDF4')
             add_main_metadata(nc_ds)
-            #TODO Add your high level sumary information for the specific model here - we'll automatically fill in per variable later:
-            #nc_ds.summary += "This model is the XXXX and works like XXXX"
 
-            #nc_ds.input_description += "This is how this model went from EMIT L3 to the specified input"
+            if lk.loc['ESM',lk_idx].values[0] == 'GISS ModelE2.1':
+                nc_ds.summary += "This version of GISS ModelE2.1 is described by Obiso et al. ACP (2024)"
+                nc_ds.input_description += "The FeOx (iron oxides) tracer contains both hematite and goethite; illite additionally contains chlorite and vermiculite.  A fraction of the non-iron-oxide minerals are mixed internally with iron oxides (Perlwitz et al., ACP 2015)."
+
+
             nc_ds.sync()
             # Add dimensions based on matching L4 variables in source dataset
             for _n, name in enumerate(source_dataset.variables[l4_names[0]].dimensions):
