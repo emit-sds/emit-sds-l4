@@ -18,9 +18,9 @@ def main():
 
     ds = Dataset(args.input_rf_file, 'r')
 
-    if ds.variables['dust_lw_rf_toa'].nvars == 4:
+    if len(ds.variables['dust_lw_rf_toa'].shape) == 4:
         dust_lw_rf_toa = np.array(ds.variables['dust_lw_rf_toa'][0,...])
-    elif ds.variables['dust_lw_rf_toa'].nvars == 3:
+    elif len(ds.variables['dust_lw_rf_toa'].shape) == 3:
         dust_lw_rf_toa = np.array(ds.variables['dust_lw_rf_toa'][...])
 
     mean_lw_rf = np.mean(dust_lw_rf_toa, axis=0)

@@ -217,9 +217,9 @@ def main():
             nc_ds = Dataset(f'{output_dir}/{output_base}' + f'_{l4_naming["Suffix"][_v]}.nc', 'w', clobber=True, format='NETCDF4')
             add_main_metadata(nc_ds)
 
-            if lk.loc['ESM',lk_idx].values[0] == 'GISS ModelE2.1':
+            if lk['ESM'][lk_idx].values[0] == 'GISS ModelE2.1':
                 nc_ds.summary += "This version of GISS ModelE2.1 is described by Obiso et al. ACP (2024)"
-                nc_ds.input_description += "The FeOx (iron oxides) tracer contains both hematite and goethite; illite additionally contains chlorite and vermiculite.  A fraction of the non-iron-oxide minerals are mixed internally with iron oxides (Perlwitz et al., ACP 2015)."
+                nc_ds.input_description = "The FeOx (iron oxides) tracer contains both hematite and goethite; illite additionally contains chlorite and vermiculite.  A fraction of the non-iron-oxide minerals are mixed internally with iron oxides (Perlwitz et al., ACP 2015)."
 
 
             nc_ds.sync()
@@ -271,8 +271,8 @@ def main():
                     print(f"Creating {dest_l4_name}")
                 
                 units = l4_units[_l4]
-                if lk.loc['ESM',lk_idx].values[0] == 'GISS ModelE2.1' and l4_names[_l4] == 'atm_min':
-                    units = 'kg m$^{-3}$'
+                if lk['ESM'][lk_idx].values[0] == 'GISS ModelE2.1' and 'atm_min' in l4_names[_l4]:
+                    units = 'kg m-3'
                 add_variable(nc_ds, dest_l4_name, "f4", l4_longnames[_l4], units, source_dataset.variables[l4_name][:], {"dimensions": source_dataset.variables[l4_name].dimensions}, lat_order=lat_idx, lon_order=lon_idx)
 
             title = l4_naming['Long Name'][_v].replace("_", " ").replace("radiativeforcing", "radiative forcing").replace("topofatmosphere", "top of atmosphere").title()
