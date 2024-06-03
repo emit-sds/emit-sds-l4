@@ -3,12 +3,10 @@
 
 import argparse
 import numpy as np
-import matplotlib.pyplot as plt
 from netCDF4 import Dataset
-
-
-
-
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 
 def main():
@@ -40,3 +38,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
