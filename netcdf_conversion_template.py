@@ -56,7 +56,7 @@ source regions that can be used to improve forecasts of the role of mineral dust
     nc_ds.title = "EMIT L4 Earth System Model Products V001; "
 
 
-def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs, flip_y=False):
+def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs, lat_order=None, lon_order=None):
     kargs['fill_value'] = NODATA
 
     
@@ -83,10 +83,15 @@ def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs, flip_
             nc_var[_n] = data[_n]
     else:
         out_dat = data.transpose(idx).copy()
-        if flip_y:
+        if lat_order is not None:
             lat_ax = newkeys.index('lat')
             slices = [slice(None)] * out_dat.ndim
-            slices[lat_ax] = np.arange(out_dat.shape[lat_ax])[::-1]
+            slices[lat_ax] = lat_order
+            out_dat = out_dat[tuple(slices)]
+        if lon_order is not None:
+            lon_ax = newkeys.index('lon')
+            slices = [slice(None)] * out_dat.ndim
+            slices[lon_ax] = lon_order
             out_dat = out_dat[tuple(slices)]
         nc_var[...] = out_dat
 
@@ -96,24 +101,18 @@ def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs, flip_
         nc_var.standard_name = "longitude"
 
     # Add grid mapping variable if doesn't exist
-    if 'transverse_mercator' not in nc_ds.variables and 'lat' in keys and 'lon' in keys:
+    if 'latitude_longitude' not in nc_ds.variables and 'lat' in keys and 'lon' in keys:
 
         
-        grid_mapping = nc_ds.createVariable('transverse_mercator', 'i4')
-        grid_mapping.grid_mapping_name = 'transverse_mercator'
-        grid_mapping.latitude_of_projection_origin = 0.0
-        grid_mapping.longitude_of_central_meridian = 0.0
-        grid_mapping.scale_factor_at_central_meridian = 1.0
+        grid_mapping = nc_ds.createVariable('latitude_longitude', 'i4')
 
 
         lat = np.sort(nc_ds.variables['lat'])
         lon = np.sort(nc_ds.variables['lon'])
         dlat = lat[-3]-lat[-2]
         dlon = lon[2]-lon[1]
-        grid_mapping.GeoTransform = f"{lon[0] + dlon/2.} {dlon} 0 {lat[-2] - dlat/2.} 0 {dlat} "
+        grid_mapping.GeoTransform = f"{lon[0] - dlon/2.} {dlon} 0 {lat[-1] + dlat/2.} 0 {dlat} "
         print(grid_mapping.GeoTransform)
-        #print(f"{lon[0] - dlon/2.} {dlon} 0 {lat[-1] - dlat/2.} 0 {dlat} ")
-        #print(len(lat), lat[-2], lat[-1])
 
         spatial_ref = osr.SpatialReference()
         spatial_ref.ImportFromEPSG(4326)
@@ -123,7 +122,7 @@ def add_variable(nc_ds, nc_name, data_type, long_name, units, data, kargs, flip_
 
 
     if 'lon' in keys and 'lat' in keys:
-        nc_var.grid_mapping = 'transverse_mercator'
+        nc_var.grid_mapping = 'latitude_longitude'
 
     nc_ds.sync()
 
@@ -230,13 +229,26 @@ def main():
 
             # Add variables for lat/lon/time
             lat = np.array(source_dataset.variables['lat'][:])
-            if lat[1] > lat[0]:
-                flip_y = True
-                lat = lat[::-1]
+            lat_idx = np.argsort(lat)[::-1]
+            lat = lat[lat_idx]
+
+            lon = np.array(source_dataset.variables['lon'][:])
+            lon[lon > 180] = lon[lon > 180] - 360
+            lon_idx = np.argsort(lon)
+            lon = lon[lon_idx]
+
+            if _v == 0:
+                print(lat)
+                print(lon)
+
+            # Account for slipage in the first/last lat index
+            lat[0] = lat[1] + (lat[1] - lat[2])
+            lat[-1] = lat[-2] - (lat[-3] - lat[-2])
+
             add_variable(nc_ds, 'lat', source_dataset.variables['lat'].dtype, 'Latitude (WGS-84)', 'degrees_north',
                          lat, {"dimensions": source_dataset.variables['lat'].dimensions})
             add_variable(nc_ds, 'lon', source_dataset.variables['lon'].dtype, 'Longitude (WGS-84)', 'degrees_east',
-                         source_dataset.variables['lon'][:], {"dimensions": source_dataset.variables['lon'].dimensions})
+                         lon, {"dimensions": source_dataset.variables['lon'].dimensions})
 
             if 'time' in nc_ds.dimensions:
                 add_variable(nc_ds, 'time', source_dataset.variables['time'].dtype, 'Time', 'none',
@@ -254,7 +266,7 @@ def main():
                     print(f"Creating {dest_l4_name} (mapped from {l4_name})")
                 else:
                     print(f"Creating {dest_l4_name}")
-                add_variable(nc_ds, dest_l4_name, "f4", l4_longnames[_l4], l4_units[_l4], source_dataset.variables[l4_name][:], {"dimensions": source_dataset.variables[l4_name].dimensions}, flip_y)
+                add_variable(nc_ds, dest_l4_name, "f4", l4_longnames[_l4], l4_units[_l4], source_dataset.variables[l4_name][:], {"dimensions": source_dataset.variables[l4_name].dimensions}, lat_order=lat_idx, lon_order=lon_idx)
 
             title = l4_naming['Long Name'][_v].replace("_", " ").replace("radiativeforcing", "radiative forcing").replace("topofatmosphere", "top of atmosphere").title()
             nc_ds.title += title
