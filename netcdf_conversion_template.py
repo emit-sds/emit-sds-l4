@@ -269,7 +269,11 @@ def main():
                     print(f"Creating {dest_l4_name} (mapped from {l4_name})")
                 else:
                     print(f"Creating {dest_l4_name}")
-                add_variable(nc_ds, dest_l4_name, "f4", l4_longnames[_l4], l4_units[_l4], source_dataset.variables[l4_name][:], {"dimensions": source_dataset.variables[l4_name].dimensions}, lat_order=lat_idx, lon_order=lon_idx)
+                
+                units = l4_units[_l4]
+                if lk.loc['ESM',lk_idx].values[0] == 'GISS ModelE2.1' and l4_names[_l4] == 'atm_min':
+                    units = 'kg m$^{-3}$'
+                add_variable(nc_ds, dest_l4_name, "f4", l4_longnames[_l4], units, source_dataset.variables[l4_name][:], {"dimensions": source_dataset.variables[l4_name].dimensions}, lat_order=lat_idx, lon_order=lon_idx)
 
             title = l4_naming['Long Name'][_v].replace("_", " ").replace("radiativeforcing", "radiative forcing").replace("topofatmosphere", "top of atmosphere").title()
             nc_ds.title += title
