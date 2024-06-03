@@ -19,7 +19,7 @@ def main():
     ds = Dataset(args.input_rf_file, 'r')
 
     if len(ds.variables['dust_lw_rf_toa'].shape) == 4:
-        dust_lw_rf_toa = np.array(ds.variables['dust_lw_rf_toa'][0,...])
+        dust_lw_rf_toa = np.sum(np.array(ds.variables['dust_lw_rf_toa'][...]),axis=0)
     elif len(ds.variables['dust_lw_rf_toa'].shape) == 3:
         dust_lw_rf_toa = np.array(ds.variables['dust_lw_rf_toa'][...])
 
