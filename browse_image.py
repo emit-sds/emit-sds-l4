@@ -28,7 +28,7 @@ def main():
     fig = plt.figure(figsize=(8, 4))
     plt.imshow(mean_lw_rf)
     plt.axis('off')
-    plt.title('Mean Dust Longwave Radiative Forcing\nin Bin 0, TOA (W m$^{-2}$)')
+    plt.title('Time Averaged Dust Longwave Radiative\nForcing TOA (W m$^{-2}$)')
     plt.colorbar()
 
 
