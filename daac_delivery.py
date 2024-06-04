@@ -183,7 +183,7 @@ def submit_cnm_notification(wm, granule_ur, paths, collection, collection_versio
     # Build notification dictionary
     utc_now = datetime.datetime.now(tz=datetime.timezone.utc)
     cnm_submission_id = f"{granule_ur}_{utc_now.strftime('%Y%m%dt%H%M%S')}"
-    cnm_submission_path = cnm_submission_id + "_cnm.json"
+    cnm_submission_path = os.path.join(os.path.basename(paths[0]), cnm_submission_id + "_cnm.json")
     # TODO: Use S3 provider?
     provider = wm.config["daac_provider_forward"]
     queue_url = wm.config["daac_submission_url_forward"]
@@ -282,8 +282,10 @@ def main():
     nc_paths = glob.glob(os.path.join(args.path, f"{granule_ur}*nc"))
     browse_path = os.path.join(args.path, f"{granule_ur}.png")
     ummg_path = os.path.join(args.path, f"{granule_ur}.cmr.json")
-    # paths = nc_paths + [browse_path] + [ummg_path]
-    paths = nc_paths + [ummg_path]
+    if os.path.exists(browse_path):
+        paths = nc_paths + [browse_path] + [ummg_path]
+    else:
+        paths = nc_paths + [ummg_path]
 
     print(f"paths: {paths}")
 
