@@ -18,21 +18,33 @@ def main():
 
     ds = Dataset(args.input_rf_file, 'r')
 
-    if len(ds.variables['dust_lw_rf_toa'].shape) == 4:
-        dust_lw_rf_toa = np.sum(np.array(ds.variables['dust_lw_rf_toa'][...]),axis=0)
-    elif len(ds.variables['dust_lw_rf_toa'].shape) == 3:
-        dust_lw_rf_toa = np.array(ds.variables['dust_lw_rf_toa'][...])
+    if len(ds.variables['dust_sw_rf_toa'].shape) == 4:
+        dust_sw_rf_toa = np.sum(np.array(ds.variables['dust_sw_rf_toa'][...]),axis=0)
+    elif len(ds.variables['dust_sw_rf_toa'].shape) == 3:
+        dust_sw_rf_toa = np.array(ds.variables['dust_sw_rf_toa'][...])
 
-    mean_lw_rf = np.mean(dust_lw_rf_toa, axis=0)
+    mean_sw_rf = np.mean(dust_sw_rf_toa, axis=0)
 
     fig = plt.figure(figsize=(8, 4))
-    plt.imshow(mean_lw_rf)
+    plt.imshow(mean_sw_rf)
     plt.axis('off')
-    plt.title('Time Averaged Dust Longwave Radiative\nForcing TOA (W m$^{-2}$)')
+    print('Mean :',np.mean(mean_sw_rf))
+    plt.title('Time Averaged Dust Shortwave\nRadiative Forcing TOA (W m$^{-2}$)')
     plt.colorbar()
 
 
     plt.savefig(args.output_file, dpi=300, bbox_inches='tight')
+
+
+
+
+
+
+
+
+
+
+
 
 
 
