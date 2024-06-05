@@ -312,9 +312,9 @@ def main():
                 "BoundingRectangles": [
                     {
                         "WestBoundingCoordinate": -180,
-                        "NorthBoundingCoordinate": 55,
+                        "NorthBoundingCoordinate": 90,
                         "EastBoundingCoordinate": 180,
-                        "SouthBoundingCoordinate": -55
+                        "SouthBoundingCoordinate": -90
                     }
                 ]
             }
