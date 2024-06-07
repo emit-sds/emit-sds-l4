@@ -273,7 +273,7 @@ def main():
     # See https://github.com/emit-sds/emit-sds-l4/blob/main/README.md for description of fields
     collection = "EMITL4ESM"
     granule_ur = os.path.basename(args.path)
-    df = pd.read_csv(args.model_lookup)
+    df = pd.read_csv(args.model_lookup, keep_default_na=False)
     row = df.loc[df["Granule Name"] == granule_ur]
     esm = row["ESM"].values[0]
     resolution = row["Resolution"].values[0]
