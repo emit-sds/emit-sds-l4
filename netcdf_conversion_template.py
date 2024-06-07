@@ -226,9 +226,6 @@ def main():
             # Add dimensions based on matching L4 variables in source dataset
             for _n, name in enumerate(source_dataset.variables[l4_names[0]].dimensions):
                 nc_ds.createDimension(name, source_dataset.dimensions[name].size)
-            # Add "lev" dimension if not yet added - only needed as dimension, not variable
-            if "lev" not in nc_ds.dimensions:
-                nc_ds.createDimension("lev", source_dataset.dimensions["lev"].size)
 
             # Add variables for lat/lon/time
             lat = np.array(source_dataset.variables['lat'][:])
