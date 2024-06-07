@@ -22,7 +22,7 @@ def initialize_ummg(granule_name: str, creation_time: datetime, collection_name:
                     start_year:str, end_year: str, pge_name: str, pge_version: str,
                     l4_software_delivery_version: str = None, doi: str = None,
                     esm: str = None, resolution: str = None, in_mineralogy: str = None,
-                    ext_meteorology: str = None, scenario: str = None):
+                    ext_meteorology: str = None, scenario: str = None, vegetation: str = None):
     """ Initialize a UMMG metadata output file
     Args:
         granule_name: granule UR tag
@@ -81,7 +81,10 @@ def initialize_ummg(granule_name: str, creation_time: datetime, collection_name:
     ummg['AdditionalAttributes'].append({'Name': 'START_YEAR', 'Values': [start_year]})
     ummg['AdditionalAttributes'].append({'Name': 'END_YEAR', 'Values': [end_year]})
     if scenario is not None:
-        ummg['AdditionalAttributes'].append({'Name': 'EMISSION_CONCENTRATION_SCENARIO', 'Values': [str(scenario)]})
+        ecs = str(scenario)
+        if vegetation is not None:
+            ecs += f", {str(vegetation)}"
+        ummg['AdditionalAttributes'].append({'Name': 'EMISSION_CONCENTRATION_SCENARIO', 'Values': [ecs]})
 
     # TODO: Keep?
     ummg['PGEVersionClass'] = {'PGEName': pge_name, 'PGEVersion': pge_version}
@@ -278,6 +281,7 @@ def main():
     ext_meteorology = row["External Meteorology"].values[0]
     time_period = row["Time Period"].values[0]
     scenario = row["Emissions/concentration scenario"].values[0]
+    vegetation = row["Vegetation for emission source mask"].values[0]
 
     nc_paths = glob.glob(os.path.join(args.path, f"{granule_ur}*nc"))
     browse_path = os.path.join(args.path, f"{granule_ur}.png")
@@ -301,7 +305,7 @@ def main():
                            l4_software_delivery_version=l4_config["repo_version"],
                            doi=l4_config["doi"], esm=esm, resolution=resolution,
                            in_mineralogy=in_mineralogy, ext_meteorology=ext_meteorology,
-                           scenario=scenario)
+                           scenario=scenario, vegetation=vegetation)
     ummg = add_data_files_ummg(ummg, paths[:-1], daynight)
 
     # ummg = add_boundary_ummg(ummg, acq.gring)
